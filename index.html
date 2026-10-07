@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тест Stars</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  body{font-family:-apple-system,system-ui,sans-serif;margin:0;padding:20px;background:var(--tg-theme-bg-color,#1b1f27);color:var(--tg-theme-text-color,#fff)}
+  button{display:block;width:100%;padding:16px;margin:10px 0;font-size:18px;border:0;border-radius:12px;background:#2f8fe0;color:#fff}
+  pre{white-space:pre-wrap;background:rgba(255,255,255,.08);padding:12px;border-radius:10px;font-size:14px}
+</style>
+</head>
+<body>
+<h2>Тест оплаты ⭐</h2>
+<button onclick="buy('test1')">Купить за 1 ⭐</button>
+<button onclick="buy('test5')">Купить за 5 ⭐</button>
+<pre id="log">Готов.</pre>
+<script>
+// ↓ ВСТАВЬТЕ адрес вашего тестового Worker (без / в конце)
+var API = 'https://stars-test.yotonick.workers.dev';
+var tg = Telegram.WebApp;
+tg.ready(); tg.expand();
+function log(t){ document.getElementById('log').textContent += '\n' + t; }
+
+async function buy(sku){
+  try{
+    log('создаю счёт…');
+    var r = await fetch(API + '/invoice', {
+      method: 'POST',
+      headers: {'Authorization': 'tma ' + tg.initData, 'Content-Type': 'application/json'},
+      body: JSON.stringify({sku: sku})
+    });
+    var j = await r.json();
+    if(!j.link){ log('ошибка: ' + JSON.stringify(j)); return; }
+    tg.openInvoice(j.link, function(status){
+      log('статус: ' + status);
+      if(status === 'paid') log('Бот пришлёт в чат номер платежа и команду для возврата.');
+    });
+  }catch(e){ log('ошибка: ' + e.message); }
+}
+</script>
+</body>
+</html>
